@@ -1,8 +1,13 @@
 package CRUD;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import model.Person;
+import java.util.Map;
 import utility.ConnectionManager;
 
 public class CrudOperations {
@@ -11,45 +16,61 @@ public class CrudOperations {
     Connection con;
     
     
-    public void ExportToDB(List<Person> list, int row) throws Exception {
-	 String firstName = null;
-   	 String lastName = null;
-   	 String gender = null;
-   	 String country = null;
-   	 String age = null;
-   	 String date = null;
-   	 String id = null;
-	for(int i=0;i<=100;i++) {
-	     firstName = list.get(i).getFirstName();
-	     lastName = list.get(i).getLastName();
-	     gender = list.get(i).getGender();
-	     country = list.get(i).getCountry();
-	     age = list.get(i).getAge();
-	     date = list.get(i).getDate();
-	     id = list.get(i).getId();
-//	  System.out.println( list.get(i).getCountry());
-	     updateDB(firstName,lastName,gender,country,age,date,id);
-	}
-	
+    public void ExportToDB(String tableName, int row, Map<String,String> listmap, List<String> excelData) throws Exception {
+	 int counter=0;
+	 String value = null;
+	for(int i=1;i<=row;i++) {
+		for(Map.Entry<String,String> entry : listmap.entrySet()) {
+		    value =  excelData.get(counter);
+		    entry.setValue(value);
+		    counter++;    
+		}
+		 updateDB(listmap,tableName);
+	}	
+	System.out.println("DataBase Updated");
     }
     
     
-    public void updateDB(String firstName,String lastName,String gender, String country,String age, String date,String id) throws Exception {
-	 	String sql = "insert into PersonDetails values(?,?,?,?,?,?,?)";
+    // insert into table
+    public void updateDB(Map<String,String> listmap,String tableName) throws Exception {
+	 	String sql = "insert into "+tableName+" values(?,?,?,?,?,?,?)";
 	 	con = cm.getConnection();
 	        PreparedStatement ps = con.prepareStatement(sql);
-	        ps.setString(1, firstName);
-		ps.setString(2,  lastName);
-		ps.setString(3, gender );
-		ps.setString(4,country);
-		ps.setString(5,age);
-		ps.setString(6,date);
-		ps.setString(7,id);
-		int x = ps.executeUpdate();
-		if(x==1) {
-		    System.out.println("DataBase Updated.");
+	        int counter = 1;
+	        for(Map.Entry<String,String> entry : listmap.entrySet()) {
+		    entry.getValue();
+		    ps.setString(counter, entry.getValue());
+		    ps.executeUpdate();
+		    counter++;    
 		}
     }
+    
+    
+    // function for colnames
+    public Map<String, String> getColumnNames(String tableName) throws Exception {
+	     String sql = "select * from "+tableName;
+	     con = cm.getConnection();
+	     Statement st = con.createStatement();
+	     ResultSet rs = st.executeQuery(sql);
+	// Get resultset metadata
+	ResultSetMetaData metadata = rs.getMetaData();
+	int columnCount = metadata.getColumnCount();
+	
+	// column list
+	List<String> colname = new ArrayList<String>();
+	// Get the column names; column indices start from 1
+	for (int i=1; i<=columnCount; i++) {
+	  String columnName = metadata.getColumnName(i);
+	  colname.add(columnName);
+	}
+	// map with variables
+	Map<String,String> dv = new HashMap<String,String>();
+	for (int i=0; i<columnCount; i++) {
+	 dv.put("m"+i,colname.get(i));
+	}
+	return dv;
+    }
+    
     
     
 }
