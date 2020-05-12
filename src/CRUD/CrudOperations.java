@@ -1,13 +1,10 @@
 package CRUD;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import utility.ConnectionManager;
 
 public class CrudOperations {
@@ -15,39 +12,49 @@ public class CrudOperations {
     ConnectionManager cm = new ConnectionManager();
     Connection con;
     
-    
-    public void ExportToDB(String tableName, int row, Map<String,String> listmap, List<String> excelData) throws Exception {
-	 int counter=0;
-	 String value = null;
-	for(int i=1;i<=row;i++) {
-		for(Map.Entry<String,String> entry : listmap.entrySet()) {
+    public void ExportToDB(String tableName,  int colcount, List<String> excelData) throws Exception {
+	con = cm.getConnection();
+ 	con.setAutoCommit(false);
+ 	Statement st = con.createStatement();
+
+ 	int counter = 0;
+ 	String value = null;
+	 List<String> colList = new ArrayList<String>();
+	 // run for number of rows
+	for(int i=0;i<excelData.size();i++) {
+	    // remove null pointer exception
+	    if(counter<excelData.size()) {
+	    // run for number of columns
+		for(int j=0;j<colcount;j++) {
 		    value =  excelData.get(counter);
-		    entry.setValue(value);
-		    counter++;    
+		    counter++;
+		    // each string store in value
+		    // list container one row at a time
+		    colList.add(value);   
 		}
-		 updateDB(listmap,tableName);
-	}	
-	System.out.println("DataBase Updated");
+		// after inner loop list gets a row 		
+		// framing into sql query 
+		 String sql = "" ;
+		 String coma = ",";
+		  for(int k=0;k<colList.size();k++) {
+		      sql +="'"+colList.get(k)+"'"+coma;
+		  }
+		  sql = sql.substring(0,sql.length()-4);
+		  // System.out.println(sql);
+		 String insertSql = "insert into "+tableName+" values("+sql+")";
+		 colList.clear();
+		 System.out.println(insertSql);
+		 st.addBatch(insertSql);
+	    }	
+	}
+
+	int[] count = st.executeBatch();
+	con.commit();
     }
     
-    
-    // insert into table
-    public void updateDB(Map<String,String> listmap,String tableName) throws Exception {
-	 	String sql = "insert into "+tableName+" values(?,?,?,?,?,?,?)";
-	 	con = cm.getConnection();
-	        PreparedStatement ps = con.prepareStatement(sql);
-	        int counter = 1;
-	        for(Map.Entry<String,String> entry : listmap.entrySet()) {
-		    entry.getValue();
-		    ps.setString(counter, entry.getValue());
-		    ps.executeUpdate();
-		    counter++;    
-		}
-    }
-    
-    
+
     // function for colnames
-    public Map<String, String> getColumnNames(String tableName) throws Exception {
+    public List<String> getColumnNames(String tableName) throws Exception {
 	     String sql = "select * from "+tableName;
 	     con = cm.getConnection();
 	     Statement st = con.createStatement();
@@ -60,17 +67,43 @@ public class CrudOperations {
 	List<String> colname = new ArrayList<String>();
 	// Get the column names; column indices start from 1
 	for (int i=1; i<=columnCount; i++) {
-	  String columnName = metadata.getColumnName(i);
+	  String columnName = metadata.getColumnName(i).toLowerCase();
 	  colname.add(columnName);
 	}
-	// map with variables
-	Map<String,String> dv = new HashMap<String,String>();
-	for (int i=0; i<columnCount; i++) {
-	 dv.put("m"+i,colname.get(i));
+	return colname;
+    }
+    
+    // check for table in database
+    public boolean checkTableExixts(String tableName) throws Exception {
+	try {
+	    String sql = "select * from "+tableName;
+	     con = cm.getConnection();
+	     Statement st = con.createStatement();
+	     ResultSet rs = st.executeQuery(sql);
+	     return true;
+	}catch(Exception e) {
+	    System.out.println("Table not present in Database..");
+	    return false;
 	}
-	return dv;
     }
     
     
-    
+    // create new table in database
+    public void createNewTable(String tableName,String sql) throws Exception {
+	Statement stmt = null;
+	con = cm.getConnection();
+	stmt = con.createStatement();
+	try {
+	    int x = stmt.executeUpdate(sql);
+	    System.out.println(x+"  table Created...");
+	    if(x==0) {
+		    System.out.println(tableName+"  table Created...");
+		}else {
+		    System.out.println(" Error while Creating table ...");
+		}
+	}catch(Exception e) {
+	    System.out.println(" Error while Creating table ...");
+	}
+    }
+
 }

@@ -9,8 +9,8 @@
 	<classpathentry kind="lib" path="C:/commons-collections4-4.1.jar"/>
 	<classpathentry kind="lib" path="C:/ojdbc6.jar"/>
 	<classpathentry kind="lib" path="C:/poi-3.17.jar"/>
-	<classpathentry kind="lib" path="C:/poi-ooxml-3.17.jar" sourcepath=""/>
 	<classpathentry kind="lib" path="C:/poi-ooxml-schemas-3.9.jar"/>
 	<classpathentry kind="lib" path="C:/xmlbeans-2.6.0.jar"/>
+	<classpathentry kind="lib" path="C:/poi-ooxml-3.17.jar" sourcepath=""/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

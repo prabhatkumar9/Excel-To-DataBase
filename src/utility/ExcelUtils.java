@@ -35,10 +35,13 @@ public class ExcelUtils {
     public List<String> getColumnNames(int col){
 	List<String> excelColName = new ArrayList<String>();
 	 Iterator<Row> rowIterator = sheet.iterator();
+	 DataFormatter formatter = new DataFormatter();
 	// 1st row contains name of column
 	       Row firstRow = rowIterator.next();
-	       for(int i=1;i<=col;i++) {
-		   excelColName.add(firstRow.getCell(i).getStringCellValue());
+	       for(int i=1;i<col+1;i++) {
+		   Object value = formatter.formatCellValue(firstRow.getCell(i));
+
+		   excelColName.add(((String) value).replaceAll("\\s", "").toLowerCase());
 	       }
 	       return excelColName;
     }
@@ -47,7 +50,6 @@ public class ExcelUtils {
     /// function
     public List<String> getData(int col) {
 	List<String> excelData = new ArrayList<String>();
-	
 	// data formatter for accepting any data type 
 	DataFormatter formatter = new DataFormatter();
 	// iterate over each row

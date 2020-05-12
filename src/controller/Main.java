@@ -32,46 +32,66 @@ public class Main {
 	tableName =  br.readLine().trim();
 	System.out.println("\t Database Table name  : : " +tableName );
 	
-	
 	// excelColName
 	List<String> excelColName = new ArrayList<String>();
-	Map<String,String> dbColName = new HashMap<String,String>();
+	// db col names
+	List<String> dbColName = new ArrayList<String>();
 	List<String> excelData = new ArrayList<String>();
-
 	CrudOperations crud = new CrudOperations();
-	ExcelUtils ex = new ExcelUtils(excelPath, sheetName);
-	
+	ExcelUtils ex = new ExcelUtils(excelPathfileName, sheetName);
 	// row and col count variables
 	int rowcount = 0;
 	int colcount = 0;
 	rowcount = ex.getRowCount();
 	colcount = ex.getColCount();
 
-//	// excelColName
+	// excelColName
 	excelColName = ex.getColumnNames(colcount);
-	dbColName = crud.getColumnNames(tableName);
 	
-	// compare each column name 
-	int counter=0;
-	boolean isTableMatch  = false;
-	for(Map.Entry<String,String> entry : dbColName.entrySet()) {
-	   String colDb = entry.getValue().toLowerCase();
-	   String colE = excelColName.get(counter).toLowerCase();
-	   counter++;
-	   if(colDb.equals(colE)) {
-	       isTableMatch = true;
-	   }else {
-	       isTableMatch = false;
-	   }
-	}
-	
-	if(isTableMatch) {
-	    excelData = ex.getData(colcount);
-	    crud.ExportToDB(tableName,rowcount,dbColName,excelData);
+	// if table not exists 
+	boolean isTableExists = crud.checkTableExixts(tableName);
+	if(!isTableExists) {
+		String str = " varchar(50),";
+		String tableHead = "";
+		for( String col:excelColName) {
+		    if(col.equals("date")) {
+			col = "enroll_date";
+		    	}
+		    tableHead += col+str;
+		}
+		  // create table syntax
+		  tableHead = tableHead.substring(0,tableHead.length()-14);
+		  String createTable = "create table "+tableName+"("+tableHead+")";
+		  System.out.println(createTable);
+		  crud.createNewTable(tableName,createTable);
 	}else {
-	    System.out.println("dataBase column and Excel sheet Column are not matched");
+	    // get colNames form database table
+	    dbColName = crud.getColumnNames(tableName);
+	    // compare each column name 
+	    // boolean  isTableMatch = false;
+	    int isTableMatch  = 0;
+	    int IsFalse = 0;
+	    for(int i=0;i<dbColName.size();i++) {
+		String colDb = dbColName.get(i);
+		String colE = excelColName.get(i);
+			if(colDb.equals(colE)) {
+			    	isTableMatch ++;
+			    	//   isTableMatch = true;
+			}else if(colDb.equals("enroll_date")){
+			    	isTableMatch ++;
+			}else {
+			    	IsFalse++;
+			    	//   isTableMatch = false;
+				}
+	   		}
+		
+	      // if number of columns in both records are same 
+	      if(isTableMatch==colcount) {
+		  excelData = ex.getData(colcount);
+		  crud.ExportToDB(tableName,colcount,excelData);
+	      }else {
+		    System.out.println("dataBase column and Excel sheet Column are not matched");
+		}
 	}
-	
     }
-
 }
