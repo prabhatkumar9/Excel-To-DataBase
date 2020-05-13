@@ -2,6 +2,7 @@ package CRUD;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,12 +44,16 @@ public class CrudOperations {
 		  // System.out.println(sql);
 		 String insertSql = "insert into "+tableName+" values("+sql+")";
 		 colList.clear();
-		 System.out.println(insertSql);
+		 // System.out.println(insertSql);
 		 st.addBatch(insertSql);
 	    }	
 	}
 
 	int[] count = st.executeBatch();
+	//System.out.println(count.length);
+	if(count.length>0) {
+	  System.out.println("Data transfer successfull.");
+	}
 	con.commit();
     }
     
@@ -73,8 +78,9 @@ public class CrudOperations {
 	return colname;
     }
     
+
     // check for table in database
-    public boolean checkTableExixts(String tableName) throws Exception {
+    public boolean checkTableExist(String tableName) throws Exception {
 	try {
 	    String sql = "select * from "+tableName;
 	     con = cm.getConnection();
@@ -89,17 +95,14 @@ public class CrudOperations {
     
     
     // create new table in database
-    public void createNewTable(String tableName,String sql) throws Exception {
-	Statement stmt = null;
+    public void createNewTable(String tableName,String sql) throws Exception,SQLException {
 	con = cm.getConnection();
-	stmt = con.createStatement();
+	Statement st = con.createStatement();
 	try {
-	    int x = stmt.executeUpdate(sql);
-	    System.out.println(x+"  table Created...");
+	    int x = st.executeUpdate(sql);
+//	    System.out.println(x+"  table Created...");
 	    if(x==0) {
 		    System.out.println(tableName+"  table Created...");
-		}else {
-		    System.out.println(" Error while Creating table ...");
 		}
 	}catch(Exception e) {
 	    System.out.println(" Error while Creating table ...");

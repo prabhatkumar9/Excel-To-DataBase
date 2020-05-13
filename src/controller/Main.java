@@ -2,9 +2,7 @@ package controller;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import CRUD.CrudOperations;
 import utility.ExcelUtils;
 
@@ -49,8 +47,10 @@ public class Main {
 	excelColName = ex.getColumnNames(colcount);
 	
 	// if table not exists 
-	boolean isTableExists = crud.checkTableExixts(tableName);
-	if(!isTableExists) {
+	boolean isTableExist = crud.checkTableExist(tableName);
+	// System.out.println(isTableExist);
+
+	if(!isTableExist) {
 		String str = " varchar(50),";
 		String tableHead = "";
 		for( String col:excelColName) {
@@ -62,8 +62,17 @@ public class Main {
 		  // create table syntax
 		  tableHead = tableHead.substring(0,tableHead.length()-14);
 		  String createTable = "create table "+tableName+"("+tableHead+")";
-		  System.out.println(createTable);
+		  // System.out.println(createTable);
+		  
+		  // create new table 
 		  crud.createNewTable(tableName,createTable);
+		  
+		  // get data from excel file
+		  excelData = ex.getData(colcount);
+		  
+		  // export data to database table
+		  crud.ExportToDB(tableName,colcount,excelData);
+		  
 	}else {
 	    // get colNames form database table
 	    dbColName = crud.getColumnNames(tableName);
